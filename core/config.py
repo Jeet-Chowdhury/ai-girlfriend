@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_UNLOAD_ON_EXIT: bool = True
     GROQ_API_KEY: str = ""
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "qwen/qwen3-32b"
     GF_NAME: str = "Stheno"
     GF_AGE: int = 21
     GF_PROFESSION: str = "College Student"

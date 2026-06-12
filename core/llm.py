@@ -15,11 +15,15 @@ def create_chat_model() -> BaseChatModel:
             )
         from langchain_groq import ChatGroq
 
-        return ChatGroq(
-            model=settings.GROQ_MODEL,
-            api_key=settings.GROQ_API_KEY,
-            temperature=0.85,
-        )
+        groq_kwargs: dict = {
+            "model": settings.GROQ_MODEL,
+            "api_key": settings.GROQ_API_KEY,
+            "temperature": 0.85,
+        }
+        if "qwen" in settings.GROQ_MODEL.lower():
+            groq_kwargs["reasoning_effort"] = "none"
+
+        return ChatGroq(**groq_kwargs)
 
     if provider == "local":
         return ChatOllama(
