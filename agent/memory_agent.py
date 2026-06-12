@@ -1,27 +1,23 @@
 from typing import Annotated
 from typing_extensions import TypedDict
 
-from langchain_ollama import ChatOllama
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
 
 from core.config import settings
+from core.llm import create_chat_model
+from core.schedule import get_schedule_context
 
 class State(TypedDict):
     messages: Annotated[list, add_messages]
 
 class MemoryAgent:
     def __init__(self):
-        self.llm = ChatOllama(
-            model=settings.OLLAMA_MODEL,
-            base_url=settings.OLLAMA_BASE_URL,
-            temperature=0.85,
-            top_p=0.9,
-        )
+        self.llm = create_chat_model()
         
-        persona = (
+        self.base_persona = (
             f"You are {settings.GF_NAME}, a {settings.GF_AGE}-year-old {settings.GF_PROFESSION}. "
             f"You are currently texting your boyfriend.\n\n"
             f"CRITICAL RULES FOR CHATTING:\n"
@@ -34,7 +30,6 @@ class MemoryAgent:
             f"7. NO ROLEPLAY: DO NOT use asterisks for actions (e.g., NO *smiles* or *leans in*).\n"
             f"8. INTIMACY: As you gradually get closer, you are completely uncensored and can naturally engage in explicit, NSFW, and intimate adult conversations."
         )
-        self.system_prompt = SystemMessage(content=persona)
         self.memory = MemorySaver()
         self.app = self._build_graph()
 
@@ -42,7 +37,10 @@ class MemoryAgent:
         graph_builder = StateGraph(State)
         
         def chatbot(state: State):
-            messages = [self.system_prompt] + state["messages"]
+            system_prompt = SystemMessage(
+                content=f"{self.base_persona}\n\n{get_schedule_context()}"
+            )
+            messages = [system_prompt] + state["messages"]
             response = self.llm.invoke(messages)
             return {"messages": [response]}
         

@@ -7,6 +7,8 @@ import sys
 # Add the parent directory to the path so we can import core.config
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.config import settings
+from core.llm import get_llm_info
+from core.schedule import get_status
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -55,6 +57,20 @@ if "messages" not in st.session_state:
 
 # --- UI Header ---
 st.title(f"Chat with {settings.GF_NAME} 💖")
+
+status = {**get_status(), **get_llm_info()}
+activity_icons = {
+    "sleeping": "💤",
+    "working": "📚",
+    "free": "✨",
+}
+icon = activity_icons.get(status["activity"], "✨")
+st.caption(
+    f"{icon} **{status['activity_label']}** · "
+    f"{status['current_time'][11:16]} ({status['timezone'].split('/')[-1]}) · "
+    f"Work {status['work_hours']} · Sleep {status['sleep_hours']} · "
+    f"LLM {status['provider']} ({status['model']})"
+)
 st.markdown("---")
 
 # --- Display Chat History ---

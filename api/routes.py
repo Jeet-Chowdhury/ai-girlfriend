@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from agent.memory_agent import agent_instance
+from core.llm import get_llm_info
+from core.schedule import get_status
 
 router = APIRouter()
 
@@ -12,6 +14,10 @@ class ChatResponse(BaseModel):
     response: str
 
 from fastapi.responses import StreamingResponse
+
+@router.get("/status")
+async def status_endpoint():
+    return {**get_status(), **get_llm_info()}
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
